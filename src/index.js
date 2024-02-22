@@ -3,10 +3,10 @@ const cors = require('cors')
 const app = express()
 const mongoose = require('mongoose');
 const port = 5000;
-const dotenv = require('dotenv');
 const user = require('./apis/routers/User')
 const post = require('./apis/routers/Post')
 
+const dotenv = require('dotenv');
 dotenv.config();
 
 mongoose.connect(process.env.MONGODB_URI).then(()=>{
