@@ -78,6 +78,27 @@ router.put("/:id/like",verifyToken, async(req,res)=>{
 })
 
 
+router.put("/comment/post", verifyToken, async(req,res)=>{
+  try {
+    const {comment,postid,profile} = req.body;
+    const comments = {
+    user:req.user.id,
+    username:req.user.username,
+    profile,
+    comment
+    }
+    const post = await Post.findById(postid);
+    if(!post){
+    return res.status(400).json('not found')
+    }
+    post.comments.push(comments);
+    await post.save();
+    return res.status(200).json(post)
+  } catch (error) {
+    console.log(error);
+  }
+})
+
   //update post
 
   // router.put("/edit/post/:id", verifyToken, async (req, res) => {

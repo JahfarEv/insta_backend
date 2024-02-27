@@ -14,6 +14,12 @@ const UserSchema = new mongoose.Schema(
     profile: {
       type: String,
     },
+    followers:{
+      type:Array
+    },
+    following:{
+      type:Array
+    },
     password:{
         type:String,
         require:true
