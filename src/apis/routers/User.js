@@ -5,6 +5,9 @@ const saltRounds = 10;
 const dotenv = require("dotenv");
 dotenv.config();
 const jwt = require("jsonwebtoken");
+
+//user sign up
+
 router.post("/new/user", async (req, res) => {
   try {
     const { email,fullname, username,password } = req.body;
@@ -38,6 +41,8 @@ router.post("/new/user", async (req, res) => {
 
 module.exports = router;
 
+//user login
+
 router.post("/login", async (req, res) => {
   try {
     let user = await User.findOne({ email: req.body.email });
@@ -67,6 +72,8 @@ router.post("/login", async (req, res) => {
 
 module.exports = router;
 
+//user with google
+
 router.post("/new/google-user", async (req, res) => {
   try {
     const { username, email, profile } = req.body;
@@ -94,6 +101,8 @@ router.post("/new/google-user", async (req, res) => {
 });
 
 module.exports = router;
+
+
 
 
 
