@@ -1,10 +1,11 @@
 const router = require("express").Router();
+const uploadCloudinary = require("../../middleware/multer");
 const Post = require("../../model/Post");
 const verifyToken = require("./verifyToken");
 
 //create post
 
-router.post("/new/post", verifyToken, async (req, res) => {
+router.post("/new/post", uploadCloudinary, async (req, res) => {
   try {
     const { title, image } = req.body;
     console.log(title, image);
@@ -12,16 +13,22 @@ router.post("/new/post", verifyToken, async (req, res) => {
     const post = await Post.create({
       title: title,
       image: image,
-      user: req.user.id,
+      // user: req.user.id,
     });
     console.log(post);
-    res.status(200).json(post);
+    res.status(200).json({
+      status:'sucess',
+      data : post
+    });
   } catch (error) {
-    return res.status(401).json("internal server error");
+    // Handle errors from middleware or Post.create
+    console.error(error);
+    return res.status(500).json({ error: "Internal server error" });
   }
 });
 
 module.exports = router;
+
 
 
 //get post

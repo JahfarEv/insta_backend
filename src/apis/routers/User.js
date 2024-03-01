@@ -98,6 +98,7 @@ router.post("/new/google-user", async (req, res) => {
       res.status(200).json({ googleUser, accessToken });
     }
   } catch (error) {
+    
     return res.status(400).json("internal server error");
   }
 });
