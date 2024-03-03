@@ -110,6 +110,17 @@ router.post("/new/google-user", async (req, res) => {
   }
 });
 
+//profile
+router.get('/profile',verifyToken,async(req,res)=>{
+  try {
+    const {user} = req;
+    const posts = await Post.find({user:user._id}).populate("user","username")
+    res.status(200).json({posts})
+  } catch (error) {
+    res.status(500).send(error)
+  }
+})
+
 router.put("/:id/follow", async (req, res) => {
   try {
     if (req.params.id !== req.body.user) {

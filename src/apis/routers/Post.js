@@ -90,27 +90,26 @@ router.put('/likes/:id',async (req,res)=>{
   }
 }
 )
-router.put("/comment/post", async (req, res) => {
-  try {
-    const { comment, postid, profile } = req.body;
-    const comments = {
-      user: req.user.id,
-      username: req.user.username,
-      profile,
-      comment,
-    };
-    const post = await Post.findById(postid);
-    if (!post) {
-      return res.status(400).json("not found");
+router.put("/comment/:id", async (req, res) => {
+  
+    try {
+        const {userId, comment}=req.body;
+        const postId=req.params.id;
+        const post= await Post.findById(postId);
+        if(!post) return res.status(404).json({error:'post not found'})
+        
+        post.comments.push({comment,postedBy:userId})
+       await post.save();
+        res.status(201).json({
+            message:'successfully add comment',
+            post
+            
+        })
+    }catch (error) {
+        console.error(error,'add comment');
+        res.status(500).json({error:'internal server error'});
     }
-    post.comments.push(comments);
-    await post.save();
-    return res.status(200).json(post);
-  } catch (error) {
-    console.log(error);
-  }
-});
-
+} )
 //update post
 
 router.put("/edit/post/:id",  async (req, res) => {
