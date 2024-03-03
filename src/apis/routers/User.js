@@ -47,7 +47,14 @@ module.exports = router;
 
 router.post("/login", async (req, res) => {
   try {
-    let user = await User.findOne({ email: req.body.email });
+    const {email, password} = req.body;
+    if(!email || !password){
+      res.status(400).json({
+        status:'error',
+        message:'Please provide email and password!'
+      })
+    }
+    let user = await User.findOne({ email }).select("+password");
     if (user) {
       const comparePassword = await bcrypt.compare(
         req.body.password,
@@ -103,7 +110,7 @@ router.post("/new/google-user", async (req, res) => {
   }
 });
 
-router.put("/:id/follow", verifyToken, async (req, res) => {
+router.put("/:id/follow", async (req, res) => {
   try {
     if (req.params.id !== req.body.user) {
       const user = await User.findById(req.params.id);

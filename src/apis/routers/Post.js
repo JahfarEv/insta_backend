@@ -7,18 +7,17 @@ const verifyToken = require("./verifyToken");
 
 router.post("/new/post", uploadCloudinary, async (req, res) => {
   try {
-    const { title, image } = req.body;
-    console.log(title, image);
+    const { userId, title, image } = req.body;
 
     const post = await Post.create({
       title: title,
       image: image,
-      // user: req.user.id,
+      user: userId,
     });
-    console.log(post);
-    res.status(200).json({
-      status:'sucess',
-      data : post
+
+    res.status(201).json({
+      status: "sucess",
+      data: post,
     });
   } catch (error) {
     // Handle errors from middleware or Post.create
@@ -29,105 +28,119 @@ router.post("/new/post", uploadCloudinary, async (req, res) => {
 
 module.exports = router;
 
-
-
 //get post
 
-router.get("/get-post", verifyToken, async (req, res) => {
-    try {
-        const post = await Post.find({});
-        if(!post){
-            return res.status(404).json({
-                status:'error',
-                messege:'post not found'
-            })
-        }
-      
-      res.status(200).json({
-        status:'success',
-        data:{
-            post
-        }
+router.get("/get-post", async (req, res) => {
+  try {
+    const post = await Post.find().populate("user");
+    if (!post) {
+      return res.status(404).json({
+        status: "error",
+        messege: "post not found",
       });
-    } catch (error) {
-      return res.status(401).json("internal server error");
     }
-  });
-  
-  module.exports = router;
 
-router.post("/all/post/by/user",verifyToken,async(req,res)=>{
+    res.status(200).json({
+      status: "success",
+      data: post,
+    });
+  } catch (error) {
+    return res.status(401).json("internal server error");
+  }
+});
+
+module.exports = router;
+
+router.get("/all/post/byuser/:id", verifyToken, async (req, res) => {
   try {
-    const post = await Post.find({user:req.user.id});
-    if(!post){
-      return res.status(200).json('You have dont have a post')
+    const userPostId = req.params.id;
+    const post = await Post.findById(userPostId);
+    if (!post) {
+      return res.status(400).json("You have dont have a post");
     }
-    return res.status(200).json(post)
+    
+    return res.status(200).json({
+      status: "success",
+      data: post,
+    });
   } catch (error) {
     console.log(error);
-    return res.status(500).json('internal server error')
+    return res.status(500).json("internal server error");
   }
-})
+});
 
-router.put("/:id/like",verifyToken, async(req,res)=>{
+router.put('/likes/:id',async (req,res)=>{
   try {
-    const post = await Post.findById(req.params.id)
-    if(!post.likes.includes(req.user.id)){
-      await post.updateOne({$push:{likes:req.user.id}})
-    }
-    else{
-      await post.updateOne({$pull:{likes:req.user.id}})
-    }
-    return res.status(200).json('like')
+      const postId=req.params.id;
+      const {userId}=req.body;
+      const post=await Post.findById(postId);
+      if(!post)return res.status(404).json({error:'post not found'})
+      const likedpost=post.likes.includes(userId)
+  if(likedpost){
+      await Post.updateOne({_id:postId},{$pull:{likes:userId}})
+      res.status(200).json({message:'post unliked successfully'})
+  }else{
+      post.likes.push(userId);
+      await post.save();
+      res.status(200).json({ message: "Post Like succesfully" });
+  }
   } catch (error) {
-    console.log(error);
+      console.error(error,'err,like')
+      res.status(500).json({error:'internal server error'})
   }
-})
-
-
-router.put("/comment/post", verifyToken, async(req,res)=>{
+}
+)
+router.put("/comment/post", async (req, res) => {
   try {
-    const {comment,postid,profile} = req.body;
+    const { comment, postid, profile } = req.body;
     const comments = {
-    user:req.user.id,
-    username:req.user.username,
-    profile,
-    comment
-    }
+      user: req.user.id,
+      username: req.user.username,
+      profile,
+      comment,
+    };
     const post = await Post.findById(postid);
-    if(!post){
-    return res.status(400).json('not found')
+    if (!post) {
+      return res.status(400).json("not found");
     }
     post.comments.push(comments);
     await post.save();
-    return res.status(200).json(post)
+    return res.status(200).json(post);
   } catch (error) {
     console.log(error);
   }
-})
+});
 
-  //update post
+//update post
 
-  // router.put("/edit/post/:id", verifyToken, async (req, res) => {
-  //   const id = req.params
-  //   try {
-  //     const { title, image } = req.body;
-  //     console.log(title, image);
-  
-  //     const editPost = await Post.findByIdAndUpdate(id,{
-  //       title: title,
-  //       image: image,
-  //       user: req.user.id,
-  //     },{new:true}).save();
-  //     res.status(200).json({
-  //       status:'success',
-  //       dta:{
-  //           editPost
-  //       }
-  //     });
-  //   } catch (error) {
-  //     return res.status(401).json("internal server error");
-  //   }
-  // });
-  
-  // module.exports = router;
+router.put("/edit/post/:id",  async (req, res) => {
+  // try {
+    const { userId,title, image } = req.body;
+    const  postId  = req.params.id;
+    console.log(postId,'fghjk')
+    console.log(title, image,userId);
+
+    const editPost = await Post.findByIdAndUpdate(
+      {_id:postId},
+      {
+       title,
+      image,
+      user:userId,
+      },
+      { new: true }
+    );
+    if(!editPost){
+      return res.status(404).json({error:'post not found'})
+    }
+    res.status(200).json({
+      status: "success",
+      data: {
+        editPost,
+      },
+    });
+  // } catch (error) {
+  //   return res.status(401).json("internal server error");
+  // }
+});
+
+module.exports = router;
