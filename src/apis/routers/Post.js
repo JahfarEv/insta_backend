@@ -8,8 +8,8 @@ const verifyToken = require("./verifyToken");
 
 router.post("/new/post", requireLogin, async (req, res) => {
   try {
-    const { title, body } = req.body;
-    if (!title || !body) {
+    const { title, body, pic } = req.body;
+    if (!title || !body || !pic) {
       return res.status(422).json({ error: 'Please add all the fields' });
     }
 
@@ -18,6 +18,7 @@ router.post("/new/post", requireLogin, async (req, res) => {
     const post = new Post({
       title,
       body,
+     photo:pic,
       postedBy: req.user
     });
 
