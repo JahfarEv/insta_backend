@@ -1,38 +1,52 @@
 const router = require("express").Router();
 const uploadCloudinary = require("../../middleware/multer");
+const requireLogin = require("../../middleware/requireLogin");
 const Post = require("../../model/Post");
 const verifyToken = require("./verifyToken");
 
 //create post
 
-router.post("/new/post", uploadCloudinary, async (req, res) => {
+router.post("/new/post", requireLogin, async (req, res) => {
   try {
-    const { userId, title, image } = req.body;
+    const { title, body } = req.body;
+    if (!title || !body) {
+      return res.status(422).json({ error: 'Please add all the fields' });
+    }
 
-    const post = await Post.create({
-      title: title,
-      image: image,
-      user: userId,
+    // req.user.password = undefined;
+
+    const post = new Post({
+      title,
+      body,
+      postedBy: req.user
     });
 
-    res.status(201).json({
-      status: "sucess",
-      data: post,
-    });
-  } catch (error) {
-    // Handle errors from middleware or Post.create
-    console.error(error);
-    return res.status(500).json({ error: "Internal server error" });
+    const result = await post.save();
+    res.json({ post: result });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ error: 'Internal Server Error' });
   }
 });
 
-module.exports = router;
+//     res.status(201).json({
+//       status: "sucess",
+//       data: post,
+//     });
+//   } catch (error) {
+//     // Handle errors from middleware or Post.create
+//     console.error(error);
+//     return res.status(500).json({ error: "Internal server error" });
+//   }
+// });
+
+// module.exports = router;
 
 //get post
 
 router.get("/get-post", async (req, res) => {
   try {
-    const post = await Post.find().populate("user");
+    const post = await Post.find().populate("postedBy","_id name");
     if (!post) {
       return res.status(404).json({
         status: "error",
@@ -49,25 +63,36 @@ router.get("/get-post", async (req, res) => {
   }
 });
 
-module.exports = router;
+//get post specific user
 
-router.get("/all/post/byuser/:id", verifyToken, async (req, res) => {
+router.get('/mypost', requireLogin, async (req, res) => {
   try {
-    const userPostId = req.params.id;
-    const post = await Post.findById(userPostId);
-    if (!post) {
-      return res.status(400).json("You have dont have a post");
-    }
-    
-    return res.status(200).json({
-      status: "success",
-      data: post,
-    });
-  } catch (error) {
-    console.log(error);
-    return res.status(500).json("internal server error");
+    const myposts = await Post.find({ postedBy: req.user._id }).populate("postedBy", "_id name");
+    res.json({ myposts });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ error: 'Internal Server Error' });
   }
 });
+
+
+// router.get("/all/post/byuser/:id", verifyToken, async (req, res) => {
+//   try {
+//     const userPostId = req.params.id;
+//     const post = await Post.findById(userPostId);
+//     if (!post) {
+//       return res.status(400).json("You have dont have a post");
+//     }
+    
+//     return res.status(200).json({
+//       status: "success",
+//       data: post,
+//     });
+//   } catch (error) {
+//     console.log(error);
+//     return res.status(500).json("internal server error");
+//   }
+// });
 
 router.put('/likes/:id',async (req,res)=>{
   try {
