@@ -151,7 +151,7 @@ router.post('/signin', async (req, res) => {
 
 //user with google
 
-router.post("/new/google-user", async (req, res) => {
+router.post("/new/google-user",requireLogin, async (req, res) => {
   try {
     const { username, email, profile } = req.body;
     let googleUser = await User.findOne({ email: req.body.email });
