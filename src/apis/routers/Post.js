@@ -9,6 +9,7 @@ const verifyToken = require("./verifyToken");
 router.post("/new/post", requireLogin, async (req, res) => {
   try {
     const { title, body, pic } = req.body;
+    console.log(title,body,pic);
     if (!title || !body || !pic) {
       return res.status(422).json({ error: 'Please add all the fields' });
     }
@@ -18,7 +19,7 @@ router.post("/new/post", requireLogin, async (req, res) => {
     const post = new Post({
       title,
       body,
-     photo:pic,
+      photo:pic,
       postedBy: req.user
     });
 
@@ -45,7 +46,7 @@ router.post("/new/post", requireLogin, async (req, res) => {
 
 //get post
 
-router.get("/get-post", async (req, res) => {
+router.get("/allpost",requireLogin, async (req, res) => {
   try {
     const post = await Post.find().populate("postedBy","_id name");
     if (!post) {
@@ -68,8 +69,10 @@ router.get("/get-post", async (req, res) => {
 
 router.get('/mypost', requireLogin, async (req, res) => {
   try {
-    const myposts = await Post.find({ postedBy: req.user._id }).populate("postedBy", "_id name");
-    res.json({ myposts });
+    Post.find({ postedBy: req.user._id }).populate("postedBy", "_id name")
+    .then(mypost=>{
+      res.json({mypost})
+    })
   } catch (err) {
     console.log(err);
     res.status(500).json({ error: 'Internal Server Error' });

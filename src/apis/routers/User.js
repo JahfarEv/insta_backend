@@ -1,12 +1,10 @@
 const router = require("express").Router();
 const User = require("../../model/User");
 const bcrypt = require("bcrypt");
-const saltRounds = 10;
 const dotenv = require("dotenv");
 dotenv.config();
 const jwt = require("jsonwebtoken");
 const verifyToken = require("./verifyToken");
-const { updateOne } = require("../../model/Post");
 const Post = require("../../model/Post");
 const requireLogin = require('../../middleware/requireLogin')
 
@@ -139,6 +137,7 @@ router.post('/signin', async (req, res) => {
          process.env.JWT_SCT)
          const {_id,name,email} = savedUser
         res.json({token,user:{_id,name,email}})
+        
     } else {
       return res.status(422).json({ error: 'invalid email or password' });
     }
