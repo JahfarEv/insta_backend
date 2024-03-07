@@ -137,7 +137,6 @@ router.post('/signin', async (req, res) => {
          process.env.JWT_SCT)
          const {_id,name,email} = savedUser
         res.json({token,user:{_id,name,email}})
-        
     } else {
       return res.status(422).json({ error: 'invalid email or password' });
     }
@@ -178,7 +177,7 @@ router.post("/new/google-user",requireLogin, async (req, res) => {
 });
 
 //all users
-router.get("/allusers", async (req, res) => {
+router.get("/allusers",requireLogin, async (req, res) => {
   try {
     const users = await User.find();
     if (!users) return res.status(404).json({ error: "users not found" });
