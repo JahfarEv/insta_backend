@@ -4,7 +4,6 @@ const bcrypt = require("bcrypt");
 const dotenv = require("dotenv");
 dotenv.config();
 const jwt = require("jsonwebtoken");
-const verifyToken = require("./verifyToken");
 const Post = require("../../model/Post");
 const requireLogin = require('../../middleware/requireLogin')
 
@@ -12,38 +11,7 @@ const requireLogin = require('../../middleware/requireLogin')
 router.get('/protected',requireLogin,(req,res)=>{
   res.send('hello')
 })
-//user sign up
 
-// router.post("/new/user", async (req, res) => {
-//   try {
-//     const { email, fullname, username, password } = req.body;
-//     let user = await User.findOne({ email: req.body.email });
-//     if (user) {
-//       return res.status(200).json("login with correct password");
-//     } else {
-//       const salt = bcrypt.genSaltSync(saltRounds);
-//       const hash = bcrypt.hashSync(password, salt);
-//       user = await User.create({
-//         email: email,
-//         fullname: fullname,
-//         username: username,
-//         password: hash,
-//       });
-//       const accessToken = jwt.sign(
-//         {
-//           id: user._id,
-//           username: user.username,
-//         },
-//         process.env.JWT_SCT
-//       );
-//       res.status(200).json({ user, accessToken });
-//     }
-//   } catch (error) {
-//     return res.status(400).json("internal server error");
-//   }
-// });
-
-// module.exports = router;
 
 router.post('/signup', async (req, res) => {
   try {
@@ -77,43 +45,6 @@ router.post('/signup', async (req, res) => {
 
 
 
-//user login
-
-// router.post("/login", async (req, res) => {
-//   try {
-//     const { email, password } = req.body;
-//     if (!email || !password) {
-//       res.status(400).json({
-//         status: "error",
-//         message: "Please provide email and password!",
-//       });
-//     }
-//     let user = await User.findOne({ email }).select("+password");
-//     if (user) {
-//       const comparePassword = await bcrypt.compare(
-//         req.body.password,
-//         user.password
-//       );
-//       if (!comparePassword) {
-//         return res.status(200).json("Password incorrect");
-//       }
-//       const accessToken = jwt.sign(
-//         {
-//           id: user._id,
-//           name: user.name,
-//         },
-//         process.env.JWT_SCT
-//       );
-
-//       const { password, ...others } = user._doc;
-//       return res.status(200).json({ others, accessToken });
-//     }
-//   } catch (error) {
-//     return res.status(400).json("internal server error");
-//   }
-// });
-
-// module.exports = router;
 
 router.post('/signin', async (req, res) => {
   try {
@@ -208,7 +139,7 @@ router.get("/userbyid/:id", async (req, res) => {
 });
 
 //profile
-router.get("/profile", verifyToken, async (req, res) => {
+router.get("/profile",async (req, res) => {
   try {
     const { user } = req;
     const posts = await Post.find({ user: user._id }).populate(
@@ -247,7 +178,7 @@ router.get("/profile", verifyToken, async (req, res) => {
 //   }
 // });
 
-router.get("/flw/:id", verifyToken, async (req, res) => {
+router.get("/flw/:id",async (req, res) => {
   try {
     const user = await User.findById(req.params.id);
     const followersPost = await Promise.all(
@@ -275,7 +206,7 @@ router.get("/flw/:id", verifyToken, async (req, res) => {
 });
 
 //get a user for follow
-router.get("/all/user/:id", verifyToken, async (req, res) => {
+router.get("/all/user/:id", async (req, res) => {
   try {
     const allUser = await User.find();
     const user = await User.findById(req.params.id);

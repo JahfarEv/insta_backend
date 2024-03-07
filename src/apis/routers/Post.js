@@ -37,7 +37,8 @@ router.post("/new/post", requireLogin, async (req, res) => {
 
 router.get("/allpost", requireLogin, async (req, res) => {
   try {
-    const post = await Post.find().populate("postedBy", "_id name");
+    const post = await Post.find().populate("postedBy", "_id name")
+    .populate("comments.postedBy","_id name")
     if (!post) {
       return res.status(404).json({
         status: "error",
@@ -101,28 +102,33 @@ router.put("/unlike", requireLogin, (req, res) => {
     });
 });
 
+//comments
 
-
-
-
-router.put("/comment/:id", async (req, res) => {
+router.put("/comment", requireLogin, async (req, res) => {
   try {
-    const { userId, comment } = req.body;
-    const postId = req.params.id;
-    const post = await Post.findById(postId);
-    if (!post) return res.status(404).json({ error: "post not found" });
+    const comment = {
+      text: req.body.text,
+      postedBy: req.user._id
+    };
 
-    post.comments.push({ comment, postedBy: userId });
-    await post.save();
-    res.status(201).json({
-      message: "successfully add comment",
-      post,
-    });
+    const updatedPost = await Post.findByIdAndUpdate(
+      req.body.postId,
+      { $push: { comments: comment } },
+      { new: true }
+    ).populate("comments.postedBy", "_id name")
+    .populate("postedBy","_id name")
+
+    if (!updatedPost) {
+      return res.status(404).json({ error: "Post not found" });
+    }
+
+    res.json(updatedPost);
   } catch (error) {
     console.error(error, "add comment");
-    res.status(500).json({ error: "internal server error" });
+    res.status(500).json({ error: "Internal server error" });
   }
 });
+
 //update post
 
 router.put("/edit/post/:id", async (req, res) => {
@@ -150,9 +156,30 @@ router.put("/edit/post/:id", async (req, res) => {
       editPost,
     },
   });
-  // } catch (error) {
-  //   return res.status(401).json("internal server error");
-  // }
+ 
 });
+
+//delete post
+
+router.delete('/deletepost/:postId', requireLogin, async (req, res) => {
+  try {
+    const post = await Post.findOneAndUpdate(
+      { _id: req.params.postId, postedBy: req.user._id },
+      { $set: { deleted: true } },
+      { new: true }
+    );
+
+    if (!post) {
+      return res.status(404).json({ error: "Post not found or you are not authorized to delete this post" });
+    }
+
+    res.json({ message: "Post deleted successfully", deletedPost: post });
+  } catch (error) {
+    console.error(error, "delete post");
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+
 
 module.exports = router;
