@@ -163,7 +163,7 @@ router.put("/edit/post/:id", async (req, res) => {
 
 router.delete('/deletepost/:postId', requireLogin, async (req, res) => {
   try {
-    const post = await Post.findOneAndUpdate(
+    const post = await Post.findOneAndDelete(
       { _id: req.params.postId, postedBy: req.user._id },
       { $set: { deleted: true } },
       { new: true }
