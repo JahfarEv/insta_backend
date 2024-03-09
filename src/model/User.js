@@ -1,5 +1,4 @@
 const mongoose = require("mongoose");
-
 const UserSchema = new mongoose.Schema(
   {
     name: {
@@ -9,22 +8,20 @@ const UserSchema = new mongoose.Schema(
     email: {
       type: String,
       require: true,
-      unique:true
-    },
-    profile: {
-      type: String,
-    },
-    followers:{
-      type:Array
-    },
-    following:{
-      type:Array
     },
     password:{
-        type:String,
-        require:true
-    }
+      type:String,
+      required:true
   },
-  { timestamps: true }
-);
+  resetToken:String,
+  expireToken:Date,
+  pic:{
+   type:String,
+   
+  },
+  followers:[{type: mongoose.Schema.Types.ObjectId,
+    ref: "User",}],
+  following:[{type: mongoose.Schema.Types.ObjectId,
+    ref: "User",}]
+})
 module.exports = mongoose.model("User", UserSchema);

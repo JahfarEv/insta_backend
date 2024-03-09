@@ -5,15 +5,13 @@ const dotenv = require("dotenv");
 dotenv.config();
 const jwt = require("jsonwebtoken");
 const Post = require("../../model/Post");
-const requireLogin = require('../../middleware/requireLogin')
+const requireLogin = require("../../middleware/requireLogin");
 
+router.get("/protected", requireLogin, (req, res) => {
+  res.send("hello");
+});
 
-router.get('/protected',requireLogin,(req,res)=>{
-  res.send('hello')
-})
-
-
-router.post('/signup', async (req, res) => {
+router.post("/signup", async (req, res) => {
   try {
     const { name, email, password } = req.body;
 
@@ -24,7 +22,9 @@ router.post('/signup', async (req, res) => {
     const savedUser = await User.findOne({ email: email });
 
     if (savedUser) {
-      return res.status(422).json({ error: "User already exists with that email" });
+      return res
+        .status(422)
+        .json({ error: "User already exists with that email" });
     }
 
     const hashedpassword = await bcrypt.hash(password, 12);
@@ -32,56 +32,50 @@ router.post('/signup', async (req, res) => {
     const user = new User({
       email,
       password: hashedpassword,
-      name
+      name,
     });
 
     await user.save();
-    res.json({ message: 'Saved successfully' });
+    res.json({ message: "Saved successfully" });
   } catch (err) {
     console.log(err);
-    res.status(500).json({ error: 'Internal Server Error' });
+    res.status(500).json({ error: "Internal Server Error" });
   }
 });
 
-
-
-
-router.post('/signin', async (req, res) => {
+router.post("/signin", async (req, res) => {
   try {
     const { email, password } = req.body;
 
     if (!email || !password) {
-      return res.status(422).json({ error: 'Please add email or password' });
+      return res.status(422).json({ error: "Please add email or password" });
     }
 
     const savedUser = await User.findOne({ email: email });
 
     if (!savedUser) {
-      return res.status(422).json({ error: 'invalid email or password' });
+      return res.status(422).json({ error: "invalid email or password" });
     }
 
     const doMatch = await bcrypt.compare(password, savedUser.password);
 
     if (doMatch) {
       // res.json({ message: 'successfully signed in' });
-      const token = jwt.sign({_id:savedUser._id},
-         process.env.JWT_SCT)
-         const {_id,name,email} = savedUser
-        res.json({token,user:{_id,name,email}})
+      const token = jwt.sign({ _id: savedUser._id }, process.env.JWT_SCT);
+      const { _id, name, email } = savedUser;
+      res.json({ token, user: { _id, name, email } });
     } else {
-      return res.status(422).json({ error: 'invalid email or password' });
+      return res.status(422).json({ error: "invalid email or password" });
     }
   } catch (err) {
     console.log(err);
-    res.status(500).json({ error: 'Internal Server Error' });
+    res.status(500).json({ error: "Internal Server Error" });
   }
 });
 
-
-
 //user with google
 
-router.post("/new/google-user",requireLogin, async (req, res) => {
+router.post("/new/google-user", requireLogin, async (req, res) => {
   try {
     const { username, email, profile } = req.body;
     let googleUser = await User.findOne({ email: req.body.email });
@@ -108,7 +102,7 @@ router.post("/new/google-user",requireLogin, async (req, res) => {
 });
 
 //all users
-router.get("/allusers",requireLogin, async (req, res) => {
+router.get("/allusers", requireLogin, async (req, res) => {
   try {
     const users = await User.find();
     if (!users) return res.status(404).json({ error: "users not found" });
@@ -139,7 +133,7 @@ router.get("/userbyid/:id", async (req, res) => {
 });
 
 //profile
-router.get("/profile",async (req, res) => {
+router.get("/profile", async (req, res) => {
   try {
     const { user } = req;
     const posts = await Post.find({ user: user._id }).populate(
@@ -149,59 +143,6 @@ router.get("/profile",async (req, res) => {
     res.status(200).json({ posts });
   } catch (error) {
     res.status(500).send(error);
-  }
-});
-//follow and unfollow
-
-// router.put("/:id/follow", async (req, res) => {
-//   try {
-//     const userId = req.params.id;
-//     const followId = req.body;
-
-//       const user = await User.findById(userId);
-//       const otherUser = await User.findById(followId);
-
-//      if(!user || !otherUser) return res.status(404).json({error:'user not found'})
-
-//      const
-//         await user.updateOne({ $push: { following: req.body.user } });
-//         await otherUser.updateOne({ $push: { followers: req.params.id } });
-//         return res.status(200).json("user has follow");
-
-//         await user.updateOne({ $pull: { following: req.body.user } });
-//         await otherUser.updateOne({ $pull: { followers: req.params.id } });
-//         return res.status(200).json("user has unfollow");
-
-//     }
-//   } catch (error) {
-//     return res.status(500).json("server error");
-//   }
-// });
-
-router.get("/flw/:id",async (req, res) => {
-  try {
-    const user = await User.findById(req.params.id);
-    const followersPost = await Promise.all(
-      user.following.map((item) => {
-        return Post.find({ user: item });
-      })
-    );
-
-    const userPost = await Post.find({ user: user._id });
-    const filterProduct = userPost.concat(...followersPost);
-
-    filterProduct.forEach((post) => {
-      const postAge = new Date() - new Date(post.createdAt);
-      const ageWeight = 1 - postAge / (1000 * 60 * 60 * 24);
-      const likeWeight = post.likes.length / 100;
-      const commentWeight = post.comments.length / 100;
-      post.weight = ageWeight + likeWeight + commentWeight;
-    });
-
-    filterProduct.sort((a, b) => b.weight - a.weight);
-    res.status(200).json(filterProduct);
-  } catch (error) {
-    return res.status(500).json("Server error");
   }
 });
 
