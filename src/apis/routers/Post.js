@@ -37,7 +37,7 @@ router.post("/new/post", requireLogin, async (req, res) => {
 
 router.get("/allpost", requireLogin, async (req, res) => {
   try {
-    const post = await Post.find().populate("postedBy", "_id name")
+    const post = await Post.find().sort({createdAt:-1}).populate("postedBy", "_id name")
     .populate("comments.postedBy","_id name")
     if (!post) {
       return res.status(404).json({

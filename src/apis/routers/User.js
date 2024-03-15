@@ -146,30 +146,5 @@ router.get("/profile", async (req, res) => {
   }
 });
 
-//get a user for follow
-router.get("/all/user/:id", async (req, res) => {
-  try {
-    const allUser = await User.find();
-    const user = await User.findById(req.params.id);
-    const followinguser = await Promise.all(
-      user.following.map((item) => {
-        return item;
-      })
-    );
-    let userToFollow = allUser.filter((val) => {
-      return !followinguser.find((item) => {
-        return val._id.toString() === item;
-      });
-    });
-
-    let filterUser = await Promise.all(
-      userToFollow.map((item) => {
-        const { email, followers, following, password, ...others } = item._doc;
-        return others;
-      })
-    );
-    res.status(200).status(filterUser);
-  } catch (error) {}
-});
 
 module.exports = router;
