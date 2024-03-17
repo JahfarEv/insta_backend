@@ -18,6 +18,7 @@ const UserSchema = new mongoose.Schema(
   expireToken:Date,
   pic:{
    type:String,
+   default:"https://images.rawpixel.com/image_png_800/cHJpdmF0ZS9sci9pbWFnZXMvd2Vic2l0ZS8yMDIzLTAxL3JtNjA5LXNvbGlkaWNvbi13LTAwMi1wLnBuZw.png"
    
   },
   followers:[{type:ObjectId,ref:"User"}],

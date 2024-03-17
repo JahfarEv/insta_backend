@@ -55,7 +55,7 @@ router.put("/follow", requireLogin, async (req, res) => {
 
 router.put("/unfollow", requireLogin, (req, res) => {
   User.findByIdAndUpdate(
-    req.body.followId,
+    req.body.unfollowId,
     {
       $pull: { followers: req.user._id },
     },
@@ -67,7 +67,7 @@ router.put("/unfollow", requireLogin, (req, res) => {
       User.findByIdAndUpdate(
         req.user._id,
         {
-          $pull: { following: req.body.followId },
+          $pull: { following: req.body.unfollowId },
         },
         {
           new: true,
@@ -82,5 +82,7 @@ router.put("/unfollow", requireLogin, (req, res) => {
     }
   );
 });
+
+
 
 module.exports = router;

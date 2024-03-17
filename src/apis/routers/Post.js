@@ -38,6 +38,28 @@ router.post("/new/post", requireLogin, async (req, res) => {
 router.get("/allpost", requireLogin, async (req, res) => {
   try {
     const post = await Post.find().sort({createdAt:-1}).populate("postedBy", "_id name")
+    .populate("comments.postedBy","_id name pic")
+    if (!post) {
+      return res.status(404).json({
+        status: "error",
+        messege: "post not found",
+      });
+    }
+
+    res.status(200).json({
+      status: "success",
+      data: post,
+    });
+  } catch (error) {
+    return res.status(401).json("internal server error");
+  }
+});
+
+//sub-post  posted by following list
+
+router.get("/getfollowpost", requireLogin, async (req, res) => {
+  try {
+    const post = await Post.find({postedBy:{$in:req.user.following}}).sort({createdAt:-1}).populate("postedBy", "_id name")
     .populate("comments.postedBy","_id name")
     if (!post) {
       return res.status(404).json({
