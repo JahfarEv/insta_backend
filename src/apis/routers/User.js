@@ -33,7 +33,7 @@ router.post("/signup", async (req, res) => {
       email,
       password: hashedpassword,
       name,
-      pic:pic
+      pic: pic,
     });
 
     await user.save();
@@ -63,8 +63,11 @@ router.post("/signin", async (req, res) => {
     if (doMatch) {
       // res.json({ message: 'successfully signed in' });
       const token = jwt.sign({ _id: savedUser._id }, process.env.JWT_SCT);
-      const { _id, name, email,followers,following,pic } = savedUser;
-      res.json({ token, user: { _id, name, email ,followers, following, pic} });
+      const { _id, name, email, followers, following, pic } = savedUser;
+      res.json({
+        token,
+        user: { _id, name, email, followers, following, pic },
+      });
     } else {
       return res.status(422).json({ error: "invalid email or password" });
     }
@@ -134,18 +137,24 @@ router.get("/userbyid/:id", async (req, res) => {
 });
 
 //profile
-router.get("/profile", async (req, res) => {
+router.put("/profile/:id", async (req, res) => {
   try {
-    const { user } = req;
-    const posts = await Post.find({ user: user._id }).populate(
-      "user",
-      "username"
-    );
-    res.status(200).json({ posts });
-  } catch (error) {
-    res.status(500).send(error);
+    const userId = req.params.id;
+    const {  pic } = req.body;
+    let updateUser = await User.findByIdAndUpdate(
+      userId,
+      {
+       
+        pic: pic,
+      })
+
+      await updateUser.save()
+    res.json({ message: "Saved successfully" });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ error: "Internal Server Error" });
   }
 });
-
+      
 
 module.exports = router;

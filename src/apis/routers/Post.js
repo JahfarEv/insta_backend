@@ -1,4 +1,5 @@
 const router = require("express").Router();
+const { default: mongoose } = require("mongoose");
 const uploadCloudinary = require("../../middleware/multer");
 const requireLogin = require("../../middleware/requireLogin");
 const Post = require("../../model/Post");
@@ -55,27 +56,7 @@ router.get("/allpost", requireLogin, async (req, res) => {
   }
 });
 
-//sub-post  posted by following list
 
-router.get("/getfollowpost", requireLogin, async (req, res) => {
-  try {
-    const post = await Post.find({postedBy:{$in:req.user.following}}).sort({createdAt:-1}).populate("postedBy", "_id name")
-    .populate("comments.postedBy","_id name")
-    if (!post) {
-      return res.status(404).json({
-        status: "error",
-        messege: "post not found",
-      });
-    }
-
-    res.status(200).json({
-      status: "success",
-      data: post,
-    });
-  } catch (error) {
-    return res.status(401).json("internal server error");
-  }
-});
 
 //get post specific user
 
@@ -85,6 +66,21 @@ router.get("/mypost", requireLogin, async (req, res) => {
       .populate("postedBy", "_id name")
       .then((mypost) => {
         res.json({ mypost });
+      });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+router.get("/postby/:id", requireLogin, async (req, res) => {
+  const postId = req.params.id
+ 
+  try {
+    Post.findOne({ _id:postId })
+      .populate("postedBy", "_id name")
+      .then((postbyid) => {
+        res.json({ postbyid });
       });
   } catch (err) {
     console.log(err);
@@ -151,6 +147,19 @@ router.put("/comment", requireLogin, async (req, res) => {
   }
 });
 
+//get comments
+router.get("/getcomments", requireLogin, async (req, res) => {
+  try {
+    Post.find({ postedBy: req.user._id })
+      .populate("postedBy", "_id name")
+      .then((mypost) => {
+        res.json({ mypost });
+      });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
 //update post
 
 router.put("/edit/post/:id", async (req, res) => {
