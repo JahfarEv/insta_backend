@@ -53,34 +53,22 @@ router.put("/follow", requireLogin, async (req, res) => {
 
 //un-follow
 
-router.put("/unfollow", requireLogin, (req, res) => {
-  User.findByIdAndUpdate(
-    req.body.unfollowId,
-    {
-      $pull: { followers: req.user._id },
-    },
-    { new: true },
-    (err, result) => {
-      if (err) {
-        return res.status(422).json({ error: err });
-      }
-      User.findByIdAndUpdate(
-        req.user._id,
-        {
-          $pull: { following: req.body.unfollowId },
-        },
-        {
-          new: true,
-        }
-      )
-        .then((result) => {
-          res.json(result);
-        })
-        .catch((err) => {
-          return res.status(422).json({ error: err });
-        });
-    }
-  );
+router.put('/unfollow', async (req, res) => {
+  const { unfollowId } = req.body;
+
+  try {
+    // Update the user document to remove the unfollowId from the following array
+    await User.findByIdAndUpdate(
+      req.user._id, // Assuming req.user contains the authenticated user's data
+      { $pull: { following: unfollowId } }, // Remove unfollowId from following array
+      { new: true } // Return the updated user document
+    );
+
+    res.status(200).json({ message: 'Unfollow successful' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
 });
 
 

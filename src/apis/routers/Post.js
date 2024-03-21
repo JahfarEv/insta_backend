@@ -90,35 +90,101 @@ router.get("/postby/:id", requireLogin, async (req, res) => {
 
 //likes and unlike
 
-router.put("/like", requireLogin, (req, res) => {
+router.put('/like/:id',requireLogin,async (req, res) => {
+  try {
+    const postId = req.params.id;
+    const { userId,name } = req.body;
+
+    const post = await Post.findById(postId);
+    if (!post) {
+      return res.status(404).json({ error: "Post not found" });
+    }
+
+    const likedPost = post.likes.includes(userId);
+
+    if (likedPost) {
+      await Post.updateOne({ _id: postId }, { $pull: { likes: userId } });
+      res.status(200).json({ message: "Post unliked successfully" });
+    } else {
+      post.likes.push(userId);
+      await post.save();
+      // Create notification
+    //   const notification = new Notification({
+    //     senderUserId: userId,
+    //     reciveUserId: post.postById,
+    //     postId: postId,
+    //     type: 'like',
+    //     description: `${name} liked your post.`,
+    //   });
+    //   await notification.save();
+    //   res.status(200).json({ message: "Post liked successfully" });
+    // }
   
-  Post.findByIdAndUpdate(
-    req.body.postId,
-    { $push: { likes: req.user._id } },
-    { new: true }
-  )
-    .then(result => {
-      res.json(result);
-    })
-    .catch(err => {
-      res.status(422).json({ error: err });
-    });
-});
+  } 
+}catch (error) {
+    console.error(error, "Error liking/unliking post");
+    res.status(500).json({ error: "Internal server error" });
+  }
+}
+)
+router.put('/unlike/:id',requireLogin, async (req, res) => {
+  try {
+    const postId = req.params.id;
+    const { userId } = req.body;
+
+    const post = await Post.findById(postId);
+    if (!post) {
+      return res.status(404).json({ error: "Post not found" });
+    }
+
+    const likedPost = post.likes.includes(userId);
+
+    if (!likedPost) {
+      return res
+        .status(400)
+        .json({ error: "Post has not been liked by this user" });
+    }
+
+    await Post.updateOne({ _id: postId }, { $pull: { likes: userId } });
+    // Create notification
+   
+    res.status(200).json({ message: "Post unliked successfully" });
+  } catch (error) {
+    console.error(error, "Error unliking post");
+    res.status(500).json({ error: "Internal server error" });
+  }
+}
+
+)
+// router.put("/like", requireLogin, (req, res) => {
+  
+//   Post.findByIdAndUpdate(
+//     req.body.postId,
+//     { $push: { likes: req.user._id } },
+//     { new: true }
+//   )
+//     .then(result => {
+//       res.json(result);
+//     })
+//     .catch(err => {
+//       res.status(422).json({ error: err });
+//     });
+// });
 
 
-router.put("/unlike", requireLogin, (req, res) => {
-  Post.findByIdAndUpdate(
-    req.body.postId,
-    { $pull: { likes: req.user._id } },
-    { new: true }
-  )
-    .then(result => {
-      res.json(result);
-    })
-    .catch(err => {
-      res.status(422).json({ error: err });
-    });
-});
+// router.put("/unlike", requireLogin, (req, res) => {
+//   Post.findByIdAndUpdate(
+//     req.body.postId,
+//     { $pull: { likes: req.user._id } },
+//     { new: true }
+//   )
+//     .then(result => {
+//       res.json(result);
+//     })
+//     .catch(err => {
+//       res.status(422).json({ error: err });
+//     });
+// });
 
 //comments
 
