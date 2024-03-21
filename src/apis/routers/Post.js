@@ -192,7 +192,8 @@ router.put("/comment", requireLogin, async (req, res) => {
   try {
     const comment = {
       text: req.body.text,
-      postedBy: req.user._id
+      postedBy: req.user._id,
+      
     };
 
     const updatedPost = await Post.findByIdAndUpdate(
@@ -200,7 +201,7 @@ router.put("/comment", requireLogin, async (req, res) => {
       { $push: { comments: comment } },
       { new: true }
     ).populate("comments.postedBy", "_id name")
-    .populate("postedBy","_id name")
+    .populate("name")
 
     if (!updatedPost) {
       return res.status(404).json({ error: "Post not found" });
@@ -216,11 +217,17 @@ router.put("/comment", requireLogin, async (req, res) => {
 //get comments
 router.get("/getcomments", requireLogin, async (req, res) => {
   try {
-    Post.find({ postedBy: req.user._id })
-      .populate("postedBy", "_id name")
-      .then((mypost) => {
-        res.json({ mypost });
-      });
+    const myposts = await Post.find({ postedBy: req.user._id })
+      .populate({
+        path: 'comments',
+        populate: {
+          path: 'postedBy',
+          model: 'User' 
+        }
+      })
+      .exec();
+
+    res.json({ myposts });
   } catch (err) {
     console.log(err);
     res.status(500).json({ error: "Internal Server Error" });

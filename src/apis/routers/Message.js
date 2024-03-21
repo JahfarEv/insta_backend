@@ -2,6 +2,7 @@ const router = require("express").Router();
 const requireLogin = require("../../middleware/requireLogin");
 const Conversation = require("../../model/Conversation");
 const Message = require("../../model/Message");
+const { getRecieverSocketId } = require("../../socket/socket");
 
 router.post("/send/:id", requireLogin, async (req, res) => {
   try {
@@ -30,9 +31,12 @@ router.post("/send/:id", requireLogin, async (req, res) => {
       conversation.messages.push(newMessage._id);
     }
 
-    //SOCKET IO
-
     await Promise.all([conversation.save(), newMessage.save()]);
+    //SOCKET IO
+const recieverSocketId = getRecieverSocketId(recieverId);
+if(recieverSocketId){
+  io.to(recieverSocketId).emit("newMessage",newMessage)
+}
 
     res.status(201).json(newMessage);
   } catch (error) {
