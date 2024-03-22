@@ -57,11 +57,11 @@ router.put('/unfollow', async (req, res) => {
   const { unfollowId } = req.body;
 
   try {
-    // Update the user document to remove the unfollowId from the following array
+    
     await User.findByIdAndUpdate(
-      req.user._id, // Assuming req.user contains the authenticated user's data
-      { $pull: { following: unfollowId } }, // Remove unfollowId from following array
-      { new: true } // Return the updated user document
+      req.user._id, 
+      { $pull: { following: unfollowId } }, 
+      { new: true } 
     );
 
     res.status(200).json({ message: 'Unfollow successful' });
