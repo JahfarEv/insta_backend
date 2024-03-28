@@ -33,10 +33,10 @@ router.post("/send/:id", requireLogin, async (req, res) => {
 
     await Promise.all([conversation.save(), newMessage.save()]);
     //SOCKET IO
-const recieverSocketId = getRecieverSocketId(recieverId);
-if(recieverSocketId){
-  io.to(recieverSocketId).emit("newMessage",newMessage)
-}
+    const recieverSocketId = getRecieverSocketId(recieverId);
+    if (recieverSocketId) {
+      io.to(recieverSocketId).emit("newMessage", newMessage);
+    }
 
     res.status(201).json(newMessage);
   } catch (error) {
@@ -52,7 +52,7 @@ router.get("/:id", requireLogin, async (req, res) => {
 
     const conversation = await Conversation.findOne({
       participants: { $all: [senderId, userToChatId] },
-    }).populate("messages")
+    }).populate("messages");
 
     if (!conversation) return res.status(200).json([]);
     const messages = conversation.messages;

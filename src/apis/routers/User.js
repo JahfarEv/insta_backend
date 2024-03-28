@@ -4,7 +4,6 @@ const bcrypt = require("bcrypt");
 const dotenv = require("dotenv");
 dotenv.config();
 const jwt = require("jsonwebtoken");
-const Post = require("../../model/Post");
 const requireLogin = require("../../middleware/requireLogin");
 
 router.get("/protected", requireLogin, (req, res) => {
@@ -140,21 +139,17 @@ router.get("/userbyid/:id", async (req, res) => {
 router.put("/profile/:id", async (req, res) => {
   try {
     const userId = req.params.id;
-    const {  pic } = req.body;
-    let updateUser = await User.findByIdAndUpdate(
-      userId,
-      {
-       
-        pic: pic,
-      })
+    const { pic } = req.body;
+    let updateUser = await User.findByIdAndUpdate(userId, {
+      pic: pic,
+    });
 
-      await updateUser.save()
+    await updateUser.save();
     res.json({ message: "Saved successfully" });
   } catch (err) {
     console.log(err);
     res.status(500).json({ error: "Internal Server Error" });
   }
 });
-      
 
 module.exports = router;

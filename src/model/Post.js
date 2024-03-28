@@ -10,9 +10,9 @@ const PostSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    createdAt:{
-      type:Date,
-      default:Date.now()
+    createdAt: {
+      type: Date,
+      default: Date.now(),
     },
     photo: {
       type: String,
@@ -22,11 +22,12 @@ const PostSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
     },
-    pic:{
-      type:String,
-      default:"https://images.rawpixel.com/image_png_800/cHJpdmF0ZS9sci9pbWFnZXMvd2Vic2l0ZS8yMDIzLTAxL3JtNjA5LXNvbGlkaWNvbi13LTAwMi1wLnBuZw.png",
-      ref:"User"
-     },
+    pic: {
+      type: String,
+      default:
+        "https://images.rawpixel.com/image_png_800/cHJpdmF0ZS9sci9pbWFnZXMvd2Vic2l0ZS8yMDIzLTAxL3JtNjA5LXNvbGlkaWNvbi13LTAwMi1wLnBuZw.png",
+      ref: "User",
+    },
 
     likes: [
       {
@@ -36,6 +37,7 @@ const PostSchema = new mongoose.Schema(
     ],
     comments: [
       {
+        name:String,
         text: String,
         postedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
       },

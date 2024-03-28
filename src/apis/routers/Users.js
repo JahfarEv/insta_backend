@@ -50,27 +50,23 @@ router.put("/follow", requireLogin, async (req, res) => {
   }
 });
 
-
-//un-follow
-
-router.put('/unfollow', async (req, res) => {
-  const { unfollowId } = req.body;
-
+router.put("/unfollow", requireLogin, async (req, res) => {
   try {
-    
-    await User.findByIdAndUpdate(
-      req.user._id, 
-      { $pull: { following: unfollowId } }, 
-      { new: true } 
+    const user = await User.findByIdAndUpdate(
+      req.body.unfollowId,
+      { $pull: { followers: req.user._id } },
+      { new: true }
     );
-
-    res.status(200).json({ message: 'Unfollow successful' });
+    await User.findByIdAndUpdate(
+      req.user._id,
+      { $pull: { following: req.body.unfollowId } },
+      { new: true }
+    );
+    res.json(user);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: 'Internal Server Error' });
+    return res.status(422).json({ error: error.message });
   }
 });
-
-
 
 module.exports = router;
